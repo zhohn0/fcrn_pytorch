@@ -6,8 +6,8 @@ Deeper Depth Prediction with Fully Convolutional Residual Networks(2016 IEEE 3D 
 主要参考：官方源码https://github.com/XPFly1989/FCRN
          前人实现https://github.com/iro-cp/FCRN-DepthPrediction》
 >fcrn_pytorch
->>data:待处理的数据
->>>testIdxs.txt  trainIdxs.txt  nyu_depth_v2_labeled 
+>>data:待处理的数据\<bar>
+>>>testIdxs.txt  trainIdxs.txt  nyu_depth_v2_labeled \<bar>
 >>model:保存模型
 >>>NYU_ResNet-UpProj.npy model_300.pth
 >>result:模型的效果
