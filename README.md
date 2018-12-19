@@ -30,5 +30,5 @@ Deeper Depth Prediction with Fully Convolutional Residual Networks(2016 IEEE 3D 
 
 (1)下载NYU Depth Dataset V2 Labelled Dataset : http://horatio.cs.nyu.edu/mit/silberman/nyu_depth_v2/nyu_depth_v2_labeled.mat. 放在data文件夹中。备份地址：https://pan.baidu.com/s/1rIUbsEUjkZJheEZ5wTb5aA 密码: bfi4
 
-(2)下载官方tensorflow的训练模型：http://campar.in.tum.de/files/rupprecht/depthpred/NYU_ResNet-UpProj.npy. 放在model文件夹中，也可以下载我训练的模型继续训练。
+(2)下载官方tensorflow的训练模型：http://campar.in.tum.de/files/rupprecht/depthpred/NYU_ResNet-UpProj.npy. 放在model文件夹中，也可以下载我训练的模型继续训练。链接：https://pan.baidu.com/s/1KCJ8ssTHmr1JPkoConC33w 提取码：2d8m 
 
