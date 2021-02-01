@@ -46,9 +46,8 @@ class Bottleneck(nn.Module):
 
 class UpProject(nn.Module):
 
-    def __init__(self, in_channels, out_channels, batch_size):
+    def __init__(self, in_channels, out_channels):
         super(UpProject, self).__init__()
-        self.batch_size = batch_size
 
         self.conv1_1 = nn.Conv2d(in_channels, out_channels, 3)
         self.conv1_2 = nn.Conv2d(in_channels, out_channels, (2, 3))
@@ -70,41 +69,42 @@ class UpProject(nn.Module):
         self.bn2 = nn.BatchNorm2d(out_channels)
 
     def forward(self, x):
+        batch_size = x.shape[0]
         # b, 10, 8, 1024
         out1_1 = self.conv1_1(nn.functional.pad(x, (1, 1, 1, 1)))
-        out1_2 = self.conv1_2(nn.functional.pad(x, (1, 1, 0, 1)))#right interleaving padding
-        #out1_2 = self.conv1_2(nn.functional.pad(x, (1, 1, 1, 0)))#author's interleaving pading in github
-        out1_3 = self.conv1_3(nn.functional.pad(x, (0, 1, 1, 1)))#right interleaving padding
-        #out1_3 = self.conv1_3(nn.functional.pad(x, (1, 0, 1, 1)))#author's interleaving pading in github
-        out1_4 = self.conv1_4(nn.functional.pad(x, (0, 1, 0, 1)))#right interleaving padding
-        #out1_4 = self.conv1_4(nn.functional.pad(x, (1, 0, 1, 0)))#author's interleaving pading in github
+        out1_2 = self.conv1_2(nn.functional.pad(x, (1, 1, 0, 1)))  # right interleaving padding
+        # out1_2 = self.conv1_2(nn.functional.pad(x, (1, 1, 1, 0)))#author's interleaving pading in github
+        out1_3 = self.conv1_3(nn.functional.pad(x, (0, 1, 1, 1)))  # right interleaving padding
+        # out1_3 = self.conv1_3(nn.functional.pad(x, (1, 0, 1, 1)))#author's interleaving pading in github
+        out1_4 = self.conv1_4(nn.functional.pad(x, (0, 1, 0, 1)))  # right interleaving padding
+        # out1_4 = self.conv1_4(nn.functional.pad(x, (1, 0, 1, 0)))#author's interleaving pading in github
 
         out2_1 = self.conv2_1(nn.functional.pad(x, (1, 1, 1, 1)))
-        out2_2 = self.conv2_2(nn.functional.pad(x, (1, 1, 0, 1)))#right interleaving padding
-        #out2_2 = self.conv2_2(nn.functional.pad(x, (1, 1, 1, 0)))#author's interleaving pading in github
-        out2_3 = self.conv2_3(nn.functional.pad(x, (0, 1, 1, 1)))#right interleaving padding
-        #out2_3 = self.conv2_3(nn.functional.pad(x, (1, 0, 1, 1)))#author's interleaving pading in github
-        out2_4 = self.conv2_4(nn.functional.pad(x, (0, 1, 0, 1)))#right interleaving padding
-        #out2_4 = self.conv2_4(nn.functional.pad(x, (1, 0, 1, 0)))#author's interleaving pading in github
+        out2_2 = self.conv2_2(nn.functional.pad(x, (1, 1, 0, 1)))  # right interleaving padding
+        # out2_2 = self.conv2_2(nn.functional.pad(x, (1, 1, 1, 0)))#author's interleaving pading in github
+        out2_3 = self.conv2_3(nn.functional.pad(x, (0, 1, 1, 1)))  # right interleaving padding
+        # out2_3 = self.conv2_3(nn.functional.pad(x, (1, 0, 1, 1)))#author's interleaving pading in github
+        out2_4 = self.conv2_4(nn.functional.pad(x, (0, 1, 0, 1)))  # right interleaving padding
+        # out2_4 = self.conv2_4(nn.functional.pad(x, (1, 0, 1, 0)))#author's interleaving pading in github
 
         height = out1_1.size()[2]
         width = out1_1.size()[3]
 
         out1_1_2 = torch.stack((out1_1, out1_2), dim=-3).permute(0, 1, 3, 4, 2).contiguous().view(
-            self.batch_size, -1, height, width * 2)
+            batch_size, -1, height, width * 2)
         out1_3_4 = torch.stack((out1_3, out1_4), dim=-3).permute(0, 1, 3, 4, 2).contiguous().view(
-            self.batch_size, -1, height, width * 2)
+            batch_size, -1, height, width * 2)
 
         out1_1234 = torch.stack((out1_1_2, out1_3_4), dim=-3).permute(0, 1, 3, 2, 4).contiguous().view(
-            self.batch_size, -1, height * 2, width * 2)
+            batch_size, -1, height * 2, width * 2)
 
         out2_1_2 = torch.stack((out2_1, out2_2), dim=-3).permute(0, 1, 3, 4, 2).contiguous().view(
-            self.batch_size, -1, height, width * 2)
+            batch_size, -1, height, width * 2)
         out2_3_4 = torch.stack((out2_3, out2_4), dim=-3).permute(0, 1, 3, 4, 2).contiguous().view(
-            self.batch_size, -1, height, width * 2)
+            batch_size, -1, height, width * 2)
 
         out2_1234 = torch.stack((out2_1_2, out2_3_4), dim=-3).permute(0, 1, 3, 2, 4).contiguous().view(
-            self.batch_size, -1, height * 2, width * 2)
+            batch_size, -1, height * 2, width * 2)
 
         out1 = self.bn1_1(out1_1234)
         out1 = self.relu(out1)
@@ -127,23 +127,23 @@ class FCRN(nn.Module):
         self.batch_size = batch_size
         # b, 304, 228, 3
         # ResNet with out avrgpool & fc
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)# b, 152 114, 64
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)  # b, 152 114, 64
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)# b, 76, 57, 64
-        self.layer1 = self._make_layer(Bottleneck, 64, 3) #b, 76, 57, 256
-        self.layer2 = self._make_layer(Bottleneck, 128, 4, stride=2)# b, 38, 29, 512
-        self.layer3 = self._make_layer(Bottleneck, 256, 6, stride=2)# b, 19, 15, 1024
-        self.layer4 = self._make_layer(Bottleneck, 512, 3, stride=2)# b, 10, 8, 2048
+        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)  # b, 76, 57, 64
+        self.layer1 = self._make_layer(Bottleneck, 64, 3)  # b, 76, 57, 256
+        self.layer2 = self._make_layer(Bottleneck, 128, 4, stride=2)  # b, 38, 29, 512
+        self.layer3 = self._make_layer(Bottleneck, 256, 6, stride=2)  # b, 19, 15, 1024
+        self.layer4 = self._make_layer(Bottleneck, 512, 3, stride=2)  # b, 10, 8, 2048
 
         # Up-Conv layers
-        self.conv2 = nn.Conv2d(2048, 1024, kernel_size=1, bias=False)# b, 10, 8, 1024
+        self.conv2 = nn.Conv2d(2048, 1024, kernel_size=1, bias=False)  # b, 10, 8, 1024
         self.bn2 = nn.BatchNorm2d(1024)
 
-        self.up1 = self._make_upproj_layer(UpProject, 1024, 512, self.batch_size)
-        self.up2 = self._make_upproj_layer(UpProject, 512, 256, self.batch_size)
-        self.up3 = self._make_upproj_layer(UpProject, 256, 128, self.batch_size)
-        self.up4 = self._make_upproj_layer(UpProject, 128, 64, self.batch_size)
+        self.up1 = self._make_upproj_layer(UpProject, 1024, 512)
+        self.up2 = self._make_upproj_layer(UpProject, 512, 256)
+        self.up3 = self._make_upproj_layer(UpProject, 256, 128)
+        self.up4 = self._make_upproj_layer(UpProject, 128, 64)
 
         self.drop = nn.Dropout2d()
 
@@ -179,8 +179,8 @@ class FCRN(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def _make_upproj_layer(self, block, in_channels, out_channels, batch_size):
-        return block(in_channels, out_channels, batch_size)
+    def _make_upproj_layer(self, block, in_channels, out_channels):
+        return block(in_channels, out_channels)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -210,23 +210,13 @@ class FCRN(nn.Module):
 
         return x
 
+
 from torchsummary import summary
+
 # 测试网络模型
 if __name__ == '__main__':
-    batch_size = 1
+    batch_size = 3
     net = FCRN(batch_size).cuda()
-    x = torch.zeros(batch_size, 3,304,228).cuda()
+    x = torch.zeros(batch_size, 3, 304, 228).cuda()
     print(net(x).size())
     summary(net, (3, 304, 228))
-
-
-
-
-
-
-
-
-
-
-
-
