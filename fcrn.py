@@ -121,10 +121,9 @@ class UpProject(nn.Module):
 
 class FCRN(nn.Module):
 
-    def __init__(self, batch_size):
+    def __init__(self):
         super(FCRN, self).__init__()
         self.inplanes = 64
-        self.batch_size = batch_size
         # b, 304, 228, 3
         # ResNet with out avrgpool & fc
         self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)  # b, 152 114, 64
@@ -149,7 +148,7 @@ class FCRN(nn.Module):
 
         self.conv3 = nn.Conv2d(64, 1, 3, padding=1)
 
-        self.upsample = nn.Upsample((228, 304), mode='bilinear')
+        self.upsample = nn.Upsample((228, 304), mode='bilinear', align_corners=False)
 
         # initialize
         initialize = False
