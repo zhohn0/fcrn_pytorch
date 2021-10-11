@@ -3,15 +3,17 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import numpy as np
+
+
 # 自定义损失函数
-class loss_huber(nn.Module):
+class loss_berhu(nn.Module):
     def __init__(self):
-        super(loss_huber,self).__init__()
+        super(loss_berhu, self).__init__()
 
     def forward(self, pred, truth):
-        c = pred.shape[1] #通道
-        h = pred.shape[2] #高
-        w = pred.shape[3] #宽
+        c = pred.shape[1]  # 通道
+        h = pred.shape[2]  # 高
+        w = pred.shape[3]  # 宽
         pred = pred.view(-1, c * h * w)
         truth = truth.view(-1, c * h * w)
         # 根据当前batch所有像素计算阈值
@@ -19,26 +21,29 @@ class loss_huber(nn.Module):
         # 计算L1范数
         l1 = torch.mean(torch.mean(torch.abs(pred - truth), 1), 0)
         # 计算论文中的L2
-        l2 = torch.mean(torch.mean(((pred - truth)**2 + t**2) / t / 2, 1), 0)
+        l2 = torch.mean(torch.mean(((pred - truth) ** 2 + t ** 2) / t / 2, 1), 0)
 
         if l1 > t:
             return l2
         else:
             return l1
 
+
 class loss_mse(nn.Module):
     def __init__(self):
         super(loss_mse, self).__init__()
+
     def forward(self, pred, truth):
         c = pred.shape[1]
         h = pred.shape[2]
         w = pred.shape[3]
         pred = pred.view(-1, c * h * w)
         truth = truth.view(-1, c * h * w)
-        return torch.mean(torch.mean((pred - truth), 1)**2, 0)
+        return torch.mean(torch.mean((pred - truth), 1) ** 2, 0)
+
 
 if __name__ == '__main__':
-    loss = loss_huber()
+    loss = loss_berhu()
     x = torch.zeros(2, 1, 2, 2)
     y = torch.ones(2, 1, 2, 2)
     c = x.shape[1]
@@ -78,6 +83,7 @@ def load_split():
     train_lists = train_lists[0:val_start_idx]
 
     return train_lists, val_lists, test_lists
+
 
 # 测试网络
 def validate(model, val_loader, loss_fn, dtype):

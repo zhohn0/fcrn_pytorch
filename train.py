@@ -4,7 +4,7 @@ import os
 from fcrn import FCRN
 from torch.autograd import Variable
 from weights import load_weights
-from utils import load_split, loss_mse, loss_huber
+from utils import load_split, loss_mse, loss_berhu
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plot
@@ -25,16 +25,16 @@ def main():
     # 1.Load data
     train_lists, val_lists, test_lists = load_split()
     print("Loading data...")
-    train_loader = torch.utils.data.DataLoader(NyuDepthLoader(data_path, train_lists),
-                                               batch_size=batch_size, shuffle=False, drop_last=True)
-    val_loader = torch.utils.data.DataLoader(NyuDepthLoader(data_path, val_lists),
-                                               batch_size=batch_size, shuffle=True, drop_last=True)
+    # train_loader = torch.utils.data.DataLoader(NyuDepthLoader(data_path, train_lists),
+    #                                            batch_size=batch_size, shuffle=False, drop_last=True)
+    # val_loader = torch.utils.data.DataLoader(NyuDepthLoader(data_path, val_lists),
+    #                                            batch_size=batch_size, shuffle=True, drop_last=True)
     test_loader = torch.utils.data.DataLoader(NyuDepthLoader(data_path, test_lists),
                                              batch_size=batch_size, shuffle=True, drop_last=True)
-    print(train_loader)
+    # print(train_loader)
     # 2.Load model
     print("Loading model...")
-    model = FCRN(batch_size)
+    model = FCRN()
     model.load_state_dict(load_weights(model, weights_file, dtype)) #加载官方参数，从tensorflow转过来
     #加载训练模型
     resume_from_file = False
@@ -56,7 +56,7 @@ def main():
     # 自定义MSE
     # loss_fn = loss_mse()
     # 论文的loss,the reverse Huber
-    loss_fn = loss_huber()
+    loss_fn = loss_berhu()
     print("loss_fn set...")
 
     # 4.Optim
